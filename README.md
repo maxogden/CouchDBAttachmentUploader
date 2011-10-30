@@ -2,11 +2,16 @@
 
 Enables a PhoneGap app to push binary attachments straight to a CouchDB database. Built with Phonegap 1.0.0 RC2
 
-###Usage
+###Installation + Usage
+
+Drag the .h and .m into the `Plugins` folder through the XCode4 file browser. Choose `Create groups for any added folders` on the dialog.
+
+Put this in yo HTMLz:
+
+    <script src="pg-plugin-couchdb-attachment-upload.js"></script>
 
 add key: `com.phonegap.CouchDBAttachmentUploader` value: `CouchDBAttachmentUploader` to the `Plugins` section of `PhoneGap.plist` in your app's `Supporting Files` directory.
 
-Put the .h and .m files of the plugin in your Xcode project and add the .js file to your www folder.
 
     navigator.camera.getPicture(function(uri) {
       window.plugins.CouchDBAttachmentUploader.upload(
