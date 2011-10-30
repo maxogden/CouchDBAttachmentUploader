@@ -6,17 +6,28 @@ Enables a PhoneGap app to push binary attachments straight to a CouchDB database
 
 Put the .h and .m files of the plugin in your Xcode project and add the .js file to your www folder.
 
-    window.plugins.CouchDBAttachmentUploader.upload($('#id_camera_image').attr('src'),
-        'http://127.0.0.1:5984/couchdb',
-        doc.id,
-        doc.rev,
+    navigator.camera.getPicture(function(uri) {
+      window.plugins.CouchDBAttachmentUploader.upload(
+        {
+          "filepath": uri,
+          "couchURI": 'http://127.0.0.1:5984/test',
+          "_id": "poo",
+          "contentType": "image/jpeg",
+          "httpMethod": "put",
+          "attachmentName": "photo.jpg"
+        },
         function() { 
-            //success callback
+          console.log('success!')
         },
         function(error) {
-            //failure callback
-        },
-        {contentType: 'image/jpeg',
-        method: 'put',
-        attachmentName: 'photo.jpg'});
+          console.log('error!', error)
+        }
+      );
+    }, function(error) {
+        console.log(error, null, "Camera Error");
+    }, {quality: 50,
+        destinationType: Camera.DestinationType.FILE_URI,
+        sourceType: navigator.camera.PictureSourceType.PHOTOLIBRARY
+    });
+
 

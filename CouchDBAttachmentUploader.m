@@ -53,22 +53,22 @@
 
 - (void)upload:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options 
 {
-    NSUInteger argc = [arguments count];
-    
-    if(argc < 5) {
-        return; 
+    if ([arguments count] < 2 ) {
+        return;
     }
-
-    NSURL *filepath = [NSURL URLWithString:[arguments objectAtIndex:0]];
-    NSString *couchURI = [arguments objectAtIndex:1];
-    NSString *docID = [arguments objectAtIndex:2];
-    NSString *docRevision = [arguments objectAtIndex:3];
-    NSString *successCallback = [arguments objectAtIndex:4];
-    NSString *failureCallback = [arguments objectAtIndex:5];
-    NSString *contentType = [options valueForKey:@"contentType"];
-    NSString *httpMethod = [[options valueForKey:@"method"] uppercaseString];
-    NSString *attachmentName = [options valueForKey:@"attachmentName"];
+        
+    NSString *successCallback = [arguments objectAtIndex:0];
+    NSString *failureCallback = [arguments objectAtIndex:1];
     
+    NSURL *filepath = [NSURL URLWithString:[options valueForKey:@"filepath"]];
+    NSString *couchURI = [options valueForKey:@"couchURI"];
+    NSString *docID = [options valueForKey:@"_id"];
+    NSString *docRevision = [options valueForKey:@"_rev"];
+    NSString *contentType = [options valueForKey:@"contentType"];
+    NSString *httpMethod = [[options valueForKey:@"httpMethod"] uppercaseString];
+    
+    NSString *attachmentName = [options valueForKey:@"attachmentName"];
+            
     if(contentType == nil)
         contentType = @"image/jpeg";
     
@@ -87,7 +87,15 @@
                             [NSArray arrayWithObjects:couchURI, 
                              docID, attachmentName, nil]] stringByStandardizingPath];
     
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@?rev=%@", couchPath, docRevision]];
+    NSString *urlprepare = [NSString stringWithFormat:@"%@", couchPath];
+    
+    if(docRevision != nil) {
+        urlprepare = [NSString stringWithFormat:@"%@?rev=%@", urlprepare, docRevision];
+    }
+    
+    NSURL *url = [NSURL URLWithString:urlprepare];
+
+    NSLog(@"args: %@ %@", url, couchPath);
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
     [req setHTTPMethod:httpMethod];

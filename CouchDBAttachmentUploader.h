@@ -5,18 +5,21 @@
 //  Copyright 2011 Red Robot Studios Ltd. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
+#ifdef PHONEGAP_FRAMEWORK
+#import <PhoneGap/PGPlugin.h>
+#else
+#import "PGPlugin.h"
+#endif
 
-#import "PhoneGapCommand.h"
-
-
-@interface CouchDBAttachmentUploader : PhoneGapCommand {
+@interface CouchDBAttachmentUploader : PGPlugin {
     
 }
 
+//Instance Method  
 - (void)upload:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
 
 @end
-
 
 @interface CouchDBAttachmentUploadDelegate : NSObject {
     NSString* successCallback;

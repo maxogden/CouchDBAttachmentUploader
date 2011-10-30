@@ -7,7 +7,7 @@
 
 var CouchDBAttachmentUploader = function() {}
 
-CouchDBAttachmentUploader.prototype.upload = function(filepath, couchURI, docID, docRevision,  success, failure, options) {
+CouchDBAttachmentUploader.prototype.upload = function(options, success, failure) {
     
     var key = 'f' + this.callbackIdx++;
     window.plugins.CouchDBAttachmentUploader.callbackMap[key] = {
@@ -20,9 +20,11 @@ CouchDBAttachmentUploader.prototype.upload = function(filepath, couchURI, docID,
             delete window.plugins.CouchDBAttachmentUploader.callbackMap[key]
         }
     }
-    var callback = 'window.plugins.CouchDBAttachmentUploader.callbackMap.' + key;
-    return PhoneGap.exec('CouchDBAttachmentUploader.upload', filepath, couchURI, docID, 
-                         docRevision, callback + '.success', callback + '.failure', options);
+    
+    var callback = window.plugins.CouchDBAttachmentUploader.callbackMap[key];
+
+    
+    return PhoneGap.exec(callback['success'], callback['failure'], 'com.phonegap.CouchDBAttachmentUploader', 'upload', [options]);
 }
 
 CouchDBAttachmentUploader.prototype.callbackMap = {};
