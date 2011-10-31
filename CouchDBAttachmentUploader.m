@@ -10,7 +10,7 @@
 
 @implementation CouchDBAttachmentUploadDelegate
 
-@synthesize successCallback, failureCallback, responseData, uploader;
+@synthesize successCallback, failureCallback, progressCallback, responseData, uploader;
 
 - (id)init {
     self = [super init];
@@ -18,6 +18,15 @@
         responseData = [[NSMutableData data] retain];
     }
     return self;
+}
+
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite 
+{
+  if(!self.progressCallback) {
+    return;
+  }
+
+  [uploader writeJavascript: [NSString stringWithFormat:@"%@(%d, %d);", self.progressCallback, totalBytesWritten, totalBytesExpectedToWrite]];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -37,9 +46,15 @@
                                stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 }
 
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [responseData appendData:data];
+}
+
 - (void)dealloc {
     [successCallback release];
     [failureCallback release];
+    [progressCallback release];
     [responseData release];
     [uploader release];
     [super dealloc];
@@ -59,14 +74,15 @@
         
     NSString *successCallback = [arguments objectAtIndex:0];
     NSString *failureCallback = [arguments objectAtIndex:1];
+    NSString *progressCallback = [options valueForKey:@"progressCallback"];
     
-    NSURL *filepath = [NSURL URLWithString:[options valueForKey:@"filepath"]];
+    NSURL *filepath = [NSURL URLWithString:[options valueForKey:@"filePath"]];
     NSString *couchURI = [options valueForKey:@"couchURI"];
     NSString *docID = [options valueForKey:@"_id"];
     NSString *docRevision = [options valueForKey:@"_rev"];
     NSString *contentType = [options valueForKey:@"contentType"];
     NSString *httpMethod = [[options valueForKey:@"httpMethod"] uppercaseString];
-    
+
     NSString *attachmentName = [options valueForKey:@"attachmentName"];
             
     if(contentType == nil)
@@ -77,12 +93,13 @@
     
     if(attachmentName == nil)
         attachmentName = @"attachment";
-    
+
+
     if (![filepath isFileURL]) {
         [self writeJavascript:[NSString stringWithFormat:@"%@(\"Invalid file\");", failureCallback]];
         return;
     }
-    
+        
     NSString *couchPath = [[NSString pathWithComponents:
                             [NSArray arrayWithObjects:couchURI, 
                              docID, attachmentName, nil]] stringByStandardizingPath];
@@ -94,8 +111,6 @@
     }
     
     NSURL *url = [NSURL URLWithString:urlprepare];
-
-    NSLog(@"args: %@ %@", url, couchPath);
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
     [req setHTTPMethod:httpMethod];
@@ -116,6 +131,7 @@
     delegate.uploader = self;
     delegate.successCallback = successCallback;
     delegate.failureCallback = failureCallback;
+    delegate.progressCallback = progressCallback;
     
     [NSURLConnection connectionWithRequest:req delegate:delegate];
     [delegate release];

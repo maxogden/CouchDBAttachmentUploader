@@ -7,28 +7,31 @@
 
 var CouchDBAttachmentUploader = function() {}
 
-CouchDBAttachmentUploader.prototype.upload = function(options, success, failure) {
+CouchDBAttachmentUploader.prototype.upload = function(err, success, options) {
     
-    var key = 'f' + this.callbackIdx++;
-    window.plugins.CouchDBAttachmentUploader.callbackMap[key] = {
+    if(!options.progress) options.progress = function(bytes, total) {};
+    
+    var key = 'f' + CouchDBAttachmentUploader.callbackIdx++;
+    CouchDBAttachmentUploader.callbackMap[key] = {
         success: function(result) {
-            success(result);
-            delete window.plugins.CouchDBAttachmentUploader.callbackMap[key]
+            if (success) success(result);
+            delete CouchDBAttachmentUploader.callbackMap[key]
         },
         failure: function(result) {
-            failure(result);
-            delete window.plugins.CouchDBAttachmentUploader.callbackMap[key]
-        }
+            if (err) err(result);
+            delete CouchDBAttachmentUploader.callbackMap[key]
+        },
+        progress: options.progress
     }
     
-    var callback = window.plugins.CouchDBAttachmentUploader.callbackMap[key];
-
+    options.progressCallback = 'CouchDBAttachmentUploader.callbackMap.' + key + '.progress';
     
+    var callback = CouchDBAttachmentUploader.callbackMap[key];
     return PhoneGap.exec(callback['success'], callback['failure'], 'com.phonegap.CouchDBAttachmentUploader', 'upload', [options]);
 }
 
-CouchDBAttachmentUploader.prototype.callbackMap = {};
-CouchDBAttachmentUploader.prototype.callbackIdx = 0;
+CouchDBAttachmentUploader.callbackMap = {};
+CouchDBAttachmentUploader.callbackIdx = 0;
 
 PhoneGap.addConstructor(function()  {
     if(!window.plugins) {

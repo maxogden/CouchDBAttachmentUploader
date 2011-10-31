@@ -15,19 +15,22 @@ add key: `com.phonegap.CouchDBAttachmentUploader` value: `CouchDBAttachmentUploa
 
     navigator.camera.getPicture(function(uri) {
       window.plugins.CouchDBAttachmentUploader.upload(
+        function() { 
+          console.log('success!')
+        },
+        function(err) { 
+          console.log('err! ' + err)
+        },
         {
-          "filepath": uri,
+          "filePath": uri,
           "couchURI": 'http://127.0.0.1:5984/test',
           "_id": "poo",
           "contentType": "image/jpeg",
           "httpMethod": "put",
-          "attachmentName": "photo.jpg"
-        },
-        function() { 
-          console.log('success!')
-        },
-        function(error) {
-          console.log('error!', error)
+          "attachmentName": "photo.jpg",
+          "progress": function(bytes,total){
+            console.log('progress: ' + (bytes/total) * 100 + 'PERCENT');
+          }
         }
       );
     }, function(error) {
